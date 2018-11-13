@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="UTF-8"?><record_update table="sys_ws_operation">
+    <sys_ws_operation action="INSERT_OR_UPDATE">
+        <active>true</active>
+        <consumes>application/json,application/xml,text/xml</consumes>
+        <consumes_customized>false</consumes_customized>
+        <default_operation_uri/>
+        <enforce_acl/>
+        <http_method>GET</http_method>
+        <name>Get All Repo Configs</name>
+        <operation_script><![CDATA[(function process(/*RESTAPIRequest*/ request, /*RESTAPIResponse*/ response) {
+	
+	var gr = new GlideRecord('x_snc_ghc_repo_config'); 
+	gr.query(); 
+	
+	var repos  = [], // array of repo configs
+		config = {}; // single config object for loop
+	
+	while (gr.next()) {
+		config = {}; 
+		config.sys_id   = gr.getUniqueValue(); 
+		config.name     = gr.getValue('name'); 
+		config.url      = gr.getValue('source_repo_url'); 
+		config.forked_url = gr.getValue('user_repo_url'); 
+		config.forked   = gr.getValue('forked') == '1'; 
+		config.imported = gr.getValue('imported') == '1'; 
+		config.tags     = getTags(gr.getValue('source_control_repo')); 
+		config.app      = gr.getValue('application'); 
+		config.repo     = gr.getValue('source_control_repo'); 
+		
+		repos.push(config); 
+	}
+	
+	return repos; 
+
+})(request, response);
+
+function getTags(repo) {
+	var gr = new GlideRecord('sys_repo_tag'); 
+	gr.addQuery('sys_repo_config', repo); 
+	gr.query(); 
+	
+	var tags = [], 
+		t    = {}; 
+	
+	while (gr.next()) {
+		t = {}; 
+		t.name      = gr.getValue('name'); 
+		t.object_id = gr.getValue('object_id'); 
+		tags.push(t); 
+	}
+	
+	return tags; 
+}]]></operation_script>
+        <operation_uri>/api/x_snc_ghc/gh/repo_config</operation_uri>
+        <produces>application/json,application/xml,text/xml</produces>
+        <produces_customized>false</produces_customized>
+        <relative_path>/repo_config</relative_path>
+        <request_example/>
+        <requires_acl_authorization>false</requires_acl_authorization>
+        <requires_authentication>true</requires_authentication>
+        <requires_snc_internal_role>false</requires_snc_internal_role>
+        <short_description/>
+        <sys_class_name>sys_ws_operation</sys_class_name>
+        <sys_created_by>jnerius</sys_created_by>
+        <sys_created_on>2017-03-17 03:05:31</sys_created_on>
+        <sys_id>2476d32d676132009ff4dbd457415a73</sys_id>
+        <sys_mod_count>2</sys_mod_count>
+        <sys_name>Get All Repo Configs</sys_name>
+        <sys_package display_value="GitHub Companion" source="x_snc_ghc">b9d683a9136db6009718b9b76144b01d</sys_package>
+        <sys_policy/>
+        <sys_scope display_value="GitHub Companion">b9d683a9136db6009718b9b76144b01d</sys_scope>
+        <sys_update_name>sys_ws_operation_2476d32d676132009ff4dbd457415a73</sys_update_name>
+        <sys_updated_by>jnerius</sys_updated_by>
+        <sys_updated_on>2017-03-31 00:37:40</sys_updated_on>
+        <web_service_definition display_value="GitHub">9c95132d676132009ff4dbd457415a2b</web_service_definition>
+        <web_service_version/>
+    </sys_ws_operation>
+</record_update>

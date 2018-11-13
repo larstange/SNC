@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="UTF-8"?><record_update table="sys_script_include">
+    <sys_script_include action="INSERT_OR_UPDATE">
+        <access>package_private</access>
+        <active>true</active>
+        <api_name>x_snc_ghc.GitHubClient</api_name>
+        <client_callable>false</client_callable>
+        <description/>
+        <name>GitHubClient</name>
+        <script><![CDATA[var GitHubClient = Class.create();
+GitHubClient.prototype = {
+	initialize: function() {
+		this.entityProfileId = gs.getProperty('x_snc_ghc.oauth_entity_profile_id');
+	},
+	
+	getUser: function() {
+		try {
+			var rm = new sn_ws.RESTMessageV2('x_snc_ghc.GitHub', 'Get Authenticated User');
+			this._applyToken(rm); 
+			var r = rm.execute();
+			var responseBody = r.getBody();
+			var httpStatus = r.getStatusCode();
+			
+			return JSON.parse(responseBody);
+		}
+		catch(ex) {
+			return ex.message; 
+		}
+	},
+	
+	forkRepo: function(user, repo) {
+		try {
+			var rm = new sn_ws.RESTMessageV2('x_snc_ghc.GitHub', 'Fork Repo');
+			this._applyToken(rm); 
+			rm.setStringParameterNoEscape('owner', user);
+			rm.setStringParameterNoEscape('repo', repo);
+			
+			var r = rm.execute();
+			var responseBody = r.getBody();
+			var httpStatus = r.getStatusCode();
+			return JSON.parse(responseBody);
+		} catch(ex) {
+			return ex.message; 
+		}
+	},
+	
+	createPersonalAccessToken: function(username, password, otp) {
+		try { 
+			var r = new sn_ws.RESTMessageV2('x_snc_ghc.GitHub', 'Create Personal Token');
+			r.setStringParameter('suffix', new GlideDateTime().toString()); 
+			r.setBasicAuth(username, password); 
+
+			// If a one-time-password is specified, add it
+			if (otp) {
+				r.setRequestHeader('X-GitHub-OTP', otp); 
+			}
+			
+			var response = r.execute();
+			var responseBody = response.getBody();
+			var httpStatus = response.getStatusCode();
+			
+			var responseObj = {};
+			responseObj.httpStatus = response.getStatusCode(); 
+			responseObj.twoFactor = response.getHeader('X-GitHub-OTP') || ''; 
+			responseObj.data = JSON.parse(responseBody); 
+			responseObj.body = responseBody; 
+
+			return responseObj;  
+		} catch(ex) {
+			var message = ex.getMessage();
+		} 
+	}, 
+	
+	_getRestMessage: function(message, method) {
+		var rm = sn_ws.RESTMessageV2(message, method); 
+		this._applyToken(rm); 
+		return rm; 
+	},
+	
+	_applyToken: function(rm) {
+		var c = new sn_auth.GlideOAuthClient();
+		var t = c.getToken(gs.getUserID(), this.entityProfileId);
+		var accessToken = t.getAccessToken(); 
+		rm.setRequestHeader('Authorization', 'Bearer ' + accessToken);
+	}, 
+	
+	type: 'GitHubClient'
+};]]></script>
+        <sys_class_name>sys_script_include</sys_class_name>
+        <sys_created_by>jnerius</sys_created_by>
+        <sys_created_on>2017-03-17 03:37:03</sys_created_on>
+        <sys_id>b08d9bad676132009ff4dbd457415aec</sys_id>
+        <sys_mod_count>6</sys_mod_count>
+        <sys_name>GitHubClient</sys_name>
+        <sys_package display_value="GitHub Companion" source="x_snc_ghc">b9d683a9136db6009718b9b76144b01d</sys_package>
+        <sys_policy>read</sys_policy>
+        <sys_scope display_value="GitHub Companion">b9d683a9136db6009718b9b76144b01d</sys_scope>
+        <sys_update_name>sys_script_include_b08d9bad676132009ff4dbd457415aec</sys_update_name>
+        <sys_updated_by>jnerius</sys_updated_by>
+        <sys_updated_on>2017-04-12 04:12:12</sys_updated_on>
+    </sys_script_include>
+</record_update>

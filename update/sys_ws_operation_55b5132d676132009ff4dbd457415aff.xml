@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="UTF-8"?><record_update table="sys_ws_operation">
+    <sys_ws_operation action="INSERT_OR_UPDATE">
+        <active>true</active>
+        <consumes>application/json,application/xml,text/xml</consumes>
+        <consumes_customized>false</consumes_customized>
+        <default_operation_uri/>
+        <enforce_acl/>
+        <http_method>POST</http_method>
+        <name>Create Personal Access Token</name>
+        <operation_script><![CDATA[(function process(/*RESTAPIRequest*/ request, /*RESTAPIResponse*/ response) {
+	var resp = {}; 
+	var oauthPeer               = gs.getProperty('x_snc_ghc.oauth_app_registry_id'); 
+	var oauthEntityProfileId    = gs.getProperty('x_snc_ghc.oauth_entity_profile_id'); 
+	var oauthRequestorProfileId = _getOrCreateRequestorProfile(oauthEntityProfileId, gs.getUserID()).getValue('sys_id'); 
+	
+	var username = request.body.data.username; 
+	var password = request.body.data.password; 
+	var code     = request.body.data.code || ''; 
+	
+    var g = new GitHubClient(); 
+	var t = g.createPersonalAccessToken(username, password, code); 
+
+	if (t.httpStatus == 201) {
+		_createCredential(oauthRequestorProfileId, oauthPeer, t.data.token, 'GitHub'); 
+	}
+
+	return {
+		httpStatus: t.httpStatus,
+		twoFactor: t.twoFactor
+	}
+})(request, response);
+
+function _createCredential(requestorId, peer, token, name) {
+	var cred = new GlideRecord('oauth_credential'); 
+	cred.addQuery('peer', peer); 
+	cred.addQuery('token', token); 
+	cred.addQuery('user', gs.getUserID()); 
+	cred.query(); 
+	
+	if (!cred.next()) {
+		cred.newRecord(); 
+		cred.peer   = peer; 
+		cred.token  = token; 
+		cred.user   = gs.getUserID(); 
+		cred.type   = 'access_token'; 
+		cred.scopes = 'repo'; 
+		cred.oauth_requestor_profile = requestorId; 
+		cred.insert(); 
+	}
+}
+
+function _getOrCreateRequestorProfile(entityProfileId, userId) {
+	var gr = new GlideRecord('oauth_requestor_profile'); 
+	gr.addQuery('oauth_entity_profile', entityProfileId); 
+	gr.addQuery('requestor_context', 'sys_user'); 
+	gr.addQuery('requestor_id', userId); 
+	gr.query(); 
+	
+	if (!gr.next()) {
+		gr.newRecord(); 
+		gr.oauth_entity_profile = entityProfileId; 
+		gr.requestor_context = 'sys_user'; 
+		gr.requestor_id = userId; 
+		gr.insert(); 
+	}
+	
+	return gr; 
+}]]></operation_script>
+        <operation_uri>/api/x_snc_ghc/gh/gh_token</operation_uri>
+        <produces>application/json,application/xml,text/xml</produces>
+        <produces_customized>false</produces_customized>
+        <relative_path>/gh_token</relative_path>
+        <request_example/>
+        <requires_acl_authorization>false</requires_acl_authorization>
+        <requires_authentication>true</requires_authentication>
+        <requires_snc_internal_role>false</requires_snc_internal_role>
+        <short_description/>
+        <sys_class_name>sys_ws_operation</sys_class_name>
+        <sys_created_by>jnerius</sys_created_by>
+        <sys_created_on>2017-03-17 03:02:43</sys_created_on>
+        <sys_id>55b5132d676132009ff4dbd457415aff</sys_id>
+        <sys_mod_count>9</sys_mod_count>
+        <sys_name>Create Personal Access Token</sys_name>
+        <sys_package display_value="GitHub Companion" source="x_snc_ghc">b9d683a9136db6009718b9b76144b01d</sys_package>
+        <sys_policy/>
+        <sys_scope display_value="GitHub Companion">b9d683a9136db6009718b9b76144b01d</sys_scope>
+        <sys_update_name>sys_ws_operation_55b5132d676132009ff4dbd457415aff</sys_update_name>
+        <sys_updated_by>jnerius</sys_updated_by>
+        <sys_updated_on>2017-04-12 05:11:02</sys_updated_on>
+        <web_service_definition display_value="GitHub">9c95132d676132009ff4dbd457415a2b</web_service_definition>
+        <web_service_version/>
+    </sys_ws_operation>
+</record_update>

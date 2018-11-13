@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?><database>
+    <element label="Repo Config" max_length="40" name="x_snc_ghc_repo_config" type="collection">
+        <element attributes="edge_encryption_enabled=true" label="Application" max_length="32" name="application" reference="sys_app" type="reference"/>
+        <element attributes="edge_encryption_enabled=true" label="Forked" max_length="40" name="forked" type="boolean"/>
+        <element label="Github repo name" max_length="40" name="github_repo_name" type="string"/>
+        <element label="GitHub user" max_length="40" name="github_user" type="string"/>
+        <element attributes="edge_encryption_enabled=true" calculation="(function calculatedFieldValue(current) {&#10;&#10;&#9;// Add your code here&#10;&#9;return !current.application.nil();  // return the calculated value&#10;&#10;})(current);" label="Imported" max_length="40" name="imported" type="boolean" virtual="true"/>
+        <element label="Name" max_length="40" name="name" type="string"/>
+        <element attributes="edge_encryption_enabled=true" label="Source control repo" max_length="32" name="source_control_repo" reference="sys_repo_config" type="reference"/>
+        <element label="Source repo URL" max_length="1024" name="source_repo_url" type="url"/>
+        <element label="User repo URL" max_length="1024" name="user_repo_url" type="url"/>
+        <index name="index">
+            <element name="application"/>
+        </index>
+        <index name="index2">
+            <element name="source_control_repo"/>
+        </index>
+    </element>
+</database>

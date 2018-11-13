@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="UTF-8"?><record_update table="sys_ui_page">
+    <sys_ui_page action="INSERT_OR_UPDATE">
+        <category>general</category>
+        <client_script/>
+        <description/>
+        <direct>false</direct>
+        <endpoint>x_snc_ghc_login.do</endpoint>
+        <html><![CDATA[<?xml version="1.0" encoding="utf-8" ?>
+<j:jelly trim="false" xmlns:j="jelly:core" xmlns:g="glide" xmlns:j2="null" xmlns:g2="null">
+	
+	<script language="javascript" src="x_snc_ghc.angular_1.3.jsdbx" />
+	<script language="javascript" src="x_snc_ghc.login_app.jsdbx" /> 
+	
+	<div class="container" ng-app="ghLogin" ng-controller="GitHubLoginCtrl">
+		<div class="row vertical-offset-100" style="margin-top:15px">
+			<div class="col-md-4 col-md-offset-4">
+				<div class="panel panel-default">
+					<div class="panel-heading">
+						<h3 class="panel-title">Please log in to GitHub</h3>
+					</div>
+					<div class="panel-body">
+						<form accept-charset="UTF-8" role="form">
+							<fieldset>
+								<div class="form-group">
+									<input ng-model="username" class="form-control" placeholder="User name" name="username" type="text"/>
+								</div>
+								<div class="form-group">
+									<input ng-model="password" class="form-control" placeholder="Password" name="password" type="password" value=""/>
+								</div>
+								<div class="form-group" ng-show="twoFactorRequired">
+									<input ng-model="code" class="form-control" placeholder="Authentication code" name="code" type="text" value=""/>
+								</div>
+								
+								<div class="form-group" ng-visible="message">
+									<strong>{{ message }}</strong>
+								</div>
+
+								<button class="btn btn-lg btn-success btn-block" ng-click="login()">Login</button>
+							</fieldset>
+						</form>
+					</div>
+				</div>
+			</div>
+			
+			<div class="col-md-4 col-md-offset-4">
+				<div ng-if="error" class="alert alert-danger" role="alert">
+					<span class="glyphicon glyphicon-exclamation-sign" aria-hidden="true"></span>
+					$[SP] {{ error }}
+				</div>
+			</div>
+			
+			<div class="col-md-4 col-md-offset-4">
+				<p>
+					Please log in using your GitHub credentials. 
+					Your credentials will be used to generate a
+					personal access token so the GitHub Companion can 
+					fork and import lab repositories on your behalf.
+				</p>
+				<p>
+					Your GitHub password will <strong> $[SP] NOT $[SP] </strong> be stored. 
+				</p>
+			</div>
+		</div>
+	</div>
+</j:jelly>]]></html>
+        <name>login</name>
+        <processing_script/>
+        <sys_class_name>sys_ui_page</sys_class_name>
+        <sys_created_by>jnerius</sys_created_by>
+        <sys_created_on>2017-03-17 02:20:25</sys_created_on>
+        <sys_id>cb3c0b29676132009ff4dbd457415a2f</sys_id>
+        <sys_mod_count>19</sys_mod_count>
+        <sys_name>login</sys_name>
+        <sys_package display_value="GitHub Companion" source="x_snc_ghc">b9d683a9136db6009718b9b76144b01d</sys_package>
+        <sys_policy/>
+        <sys_scope display_value="GitHub Companion">b9d683a9136db6009718b9b76144b01d</sys_scope>
+        <sys_update_name>sys_ui_page_cb3c0b29676132009ff4dbd457415a2f</sys_update_name>
+        <sys_updated_by>jnerius</sys_updated_by>
+        <sys_updated_on>2017-04-12 05:01:46</sys_updated_on>
+    </sys_ui_page>
+</record_update>

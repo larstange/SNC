@@ -1,0 +1,210 @@
+<?xml version="1.0" encoding="UTF-8"?><record_update table="sys_ui_page">
+    <sys_ui_page action="INSERT_OR_UPDATE">
+        <category>general</category>
+        <client_script/>
+        <description/>
+        <direct>false</direct>
+        <endpoint>x_snc_ghc_home.do</endpoint>
+        <html><![CDATA[<?xml version="1.0" encoding="utf-8" ?>
+<j:jelly trim="false" xmlns:j="jelly:core" xmlns:g="glide" xmlns:j2="null" xmlns:g2="null">
+	<style>
+
+		.navbar-nav li a {
+		    line-height: 10px;
+		}
+		
+		.navbar-brand {
+			padding-left: 25px;
+			padding-top: 10px; 
+		}
+		
+		.signin {
+			margin-top: 20px; 
+		}
+		
+		.btn-social {
+			margin-top: 8px; 
+		}
+		
+		.signin-arrow {
+			margin-right: 45px; 
+		}
+
+		.glyphicon.spinning {
+			animation: spin 1s infinite linear;
+			-webkit-animation: spin2 1s infinite linear;
+		}
+		@keyframes spin {
+			from {
+				transform: scale(1) rotate(0deg);
+			}
+			to {
+				transform: scale(1) rotate(360deg);
+			}
+		}
+		@-webkit-keyframes spin2 {
+			from {
+				-webkit-transform: rotate(0deg);
+			}
+			to {
+				-webkit-transform: rotate(360deg);
+			}
+		}
+	</style>
+	
+	<link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-social/5.1.1/bootstrap-social.min.css"/> 
+	<link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css"/> 
+	
+	<script language="javascript" src="x_snc_ghc.angular_1.3.jsdbx" />
+	<script language="javascript" src="x_snc_ghc.ghc_app.jsdbx" /> 
+	<div ng-app="ghCompanion">
+		<div ng-controller="GitHubCompanionCtrl" class="ng-cloak">
+			<nav class="navbar navbar-default">
+				<div class="container-fluid">
+					<div class="navbar-header">
+						<a class="navbar-brand">
+							<img src="git-icon.png" height="30" width="30"/> $[SP]
+							<span>GitHub Companion</span>
+						</a>
+						
+					</div>
+					<div id="navbar" class="collapse navbar-collapse navbar-right">
+						<ul class="nav navbar-nav">
+							<!--<li><a href="#user">GitHub User: $[SP]<strong>{{ user.login }}</strong></a></li>-->
+							<!--<li><a href="#token">Token Exists: $[SP]<strong>{{ hasToken}}</strong></a></li>-->
+							
+							<li>
+								<button ng-if="!hasToken" ng-click="initiateLoginWindow()" class="ng-cloak btn btn-block btn-social btn-github">
+									<span class="fa fa-github"></span>Sign in to GitHub
+								</button>
+								<button ng-if="hasToken" class="ng-cloak btn btn-block btn-social btn-github">
+									<span class="fa fa-github"></span>Signed in as {{ user.login }}
+								</button>
+							</li>
+						</ul>
+					</div>
+				</div>
+			</nav>
+			
+			<div class="container-fluid">
+				<div class="row">
+					<div ng-if="!hasToken" class="signin col-md-6 col-md-offset-3">
+						<h1 class="form-signin-heading">Sign in to GitHub to get started!</h1>
+						<br/>
+						<img class="img-responsive center-block" ng-src="https://octodex.github.com/images/{{ randomOcto }}"/>
+					</div>
+					<div ng-if="!hasToken" class="col-md-3">
+						<div class="pull-right signin-arrow">
+							<img src="right-arrow-up.png" height="65" width="65"/> 
+						</div>
+					</div>
+				</div>
+				<div class="row">
+					<div ng-if="hasToken" class="md-12">
+
+						<div ng-if="message" class="alert alert-info" role="alert">{{ message }}</div>
+
+						<!--<pre ng-if="transaction">{{ transaction | json }}</pre>-->
+						
+						<h3 style="margin-left: 5px">Available Repositories</h3>
+						
+						
+
+						<table class="table" style="table-layout:fixed">
+							<tbody>
+								<tr ng-repeat="c in repoConfigs">
+									<td class="col-md-1">
+										<div style="width:50px;margin-top:8px;margin-left:8px">
+											<img src="git-icon.png" width="45" height="45"/> 
+										</div>
+									</td>
+									<td class="col-md-4">
+										<div>
+											<p style="font-size:15px;margin:0;float:left;white-space:nowrap;">
+												{{ c.name }}
+											</p>
+											<div style="font-size: 12px; color: #828890; white-space:nowrap; padding-top: 6px; clear:both" class="ng-binding"></div>
+											<div style="font-size: 12px; color: #828890;">
+												Source repo: {{ c.url }}
+											</div>
+											<div style="font-size: 12px; color: #828890;">
+												My repo: {{ c.forked_url }}
+											</div>
+										</div>
+									</td>
+									<td class="col-md-5">
+										<div ng-if="progressId $[AMP]$[AMP] $index==clickedIndex">
+											<div class="progress" style="margin-top:5px;margin-bottom:0px">
+												<div class="progress-bar" role="progressbar" 
+													aria-valuenow="{{ transaction.percentComplete }}" 
+													aria-valuemin="0" 
+													aria-valuemax="100" 
+													ng-style="{'width':transaction.percentComplete+'%'}">
+													
+												</div>
+											</div>
+
+											<div style="text-align:center">
+												<strong>{{ transaction.name }}...</strong>
+												{{ transaction.detailMessage }}
+											</div>
+										</div>
+									</td>
+									<td class="col-md-2">
+										<button ng-if="!c.imported" ng-disabled="processing" class="btn btn-primary pull-right dropdown-menu-left" ng-click="forkAndLink(c, $index)">
+											Fork and Import
+										</button>
+										
+										<!-- This is brute force and I hate it. --> 
+										<div ng-if="!processing $[AMP]$[AMP] c.imported $[AMP]$[AMP] c.tags.length" class="btn-group pull-right">
+											<button type="button" class="btn btn-primary dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+												Checkpoints $[SP] <span class="caret"></span>
+											</button>
+											<ul class="dropdown-menu dropdown-menu-right">
+												<li ng-repeat="t in c.tags">
+													<a href="#" ng-click="tagClicked(t, c, $parent.$index)">{{ t.name }}</a>
+												</li>
+											</ul>
+										</div>
+
+										<div ng-if="processing $[AMP]$[AMP] c.imported $[AMP]$[AMP] c.tags.length $[AMP]$[AMP] $index==clickedIndex" class="btn-group pull-right">
+											<button type="button" class="btn btn-primary dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+												<i class="glyphicon glyphicon-refresh spinning"></i> $[SP] Working
+											</button>
+										</div>
+
+										<div ng-if="processing $[AMP]$[AMP] c.imported $[AMP]$[AMP] c.tags.length $[AMP]$[AMP] $index!=clickedIndex" class="btn-group pull-right">
+											<button type="button" class="btn btn-primary dropdown-toggle disabled" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+												Checkpoints $[SP] <span class="caret"></span>
+											</button>
+										</div>
+
+										<button ng-if="c.imported $[AMP]$[AMP] c.tags.length==0" type="button" class="btn btn-primary pull-right disabled" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+												No Checkpoints $[SP] <span class="caret"></span>
+										</button>
+									</td>
+								</tr>
+							</tbody>
+						</table>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+</j:jelly>]]></html>
+        <name>home</name>
+        <processing_script/>
+        <sys_class_name>sys_ui_page</sys_class_name>
+        <sys_created_by>jnerius</sys_created_by>
+        <sys_created_on>2017-03-17 02:19:32</sys_created_on>
+        <sys_id>bc1cc729676132009ff4dbd457415ac3</sys_id>
+        <sys_mod_count>39</sys_mod_count>
+        <sys_name>home</sys_name>
+        <sys_package display_value="GitHub Companion" source="x_snc_ghc">b9d683a9136db6009718b9b76144b01d</sys_package>
+        <sys_policy/>
+        <sys_scope display_value="GitHub Companion">b9d683a9136db6009718b9b76144b01d</sys_scope>
+        <sys_update_name>sys_ui_page_bc1cc729676132009ff4dbd457415ac3</sys_update_name>
+        <sys_updated_by>jnerius</sys_updated_by>
+        <sys_updated_on>2017-04-12 03:25:34</sys_updated_on>
+    </sys_ui_page>
+</record_update>

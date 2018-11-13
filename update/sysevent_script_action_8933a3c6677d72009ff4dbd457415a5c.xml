@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?><record_update sys_domain="global" table="sysevent_script_action">
+    <sysevent_script_action action="INSERT_OR_UPDATE">
+        <active>true</active>
+        <condition_script/>
+        <description/>
+        <event_name>plugin.upgraded</event_name>
+        <name>Re-Link Repo Config to App</name>
+        <order>100</order>
+        <script><![CDATA[// After a branch switch, the Application field on the Repo Config
+// record gets cleared out. This script looks it up and re-sets the value. 
+var grSysApp = new GlideRecord('sys_app'); 
+grSysApp.addQuery('scope', event.parm1); 
+grSysApp.query(); 
+if (grSysApp.next()) {
+	var grSysRepo = new GlideRecord('sys_repo_config'); 
+	grSysRepo.addQuery('sys_app', grSysApp.getUniqueValue()); 
+	grSysRepo.query(); 
+	if (grSysRepo.next()) {
+		// Find the GHC Repo Config Record
+		var grRepoConfig = new GlideRecord('x_snc_ghc_repo_config'); 
+		grRepoConfig.addQuery('source_control_repo', grSysRepo.getUniqueValue()); 
+		grRepoConfig.query(); 
+		if (grRepoConfig.next()) {
+			grRepoConfig.application = grSysRepo.getValue('sys_app'); 
+			grRepoConfig.update(); 
+		}
+	}
+}]]></script>
+        <synchronous>false</synchronous>
+        <sys_class_name>sysevent_script_action</sys_class_name>
+        <sys_created_by>jnerius</sys_created_by>
+        <sys_created_on>2017-03-31 03:33:32</sys_created_on>
+        <sys_domain>global</sys_domain>
+        <sys_domain_path>/</sys_domain_path>
+        <sys_id>8933a3c6677d72009ff4dbd457415a5c</sys_id>
+        <sys_mod_count>2</sys_mod_count>
+        <sys_name>Re-Link Repo Config to App</sys_name>
+        <sys_overrides/>
+        <sys_package display_value="GitHub Companion" source="x_snc_ghc">b9d683a9136db6009718b9b76144b01d</sys_package>
+        <sys_policy/>
+        <sys_scope display_value="GitHub Companion">b9d683a9136db6009718b9b76144b01d</sys_scope>
+        <sys_update_name>sysevent_script_action_8933a3c6677d72009ff4dbd457415a5c</sys_update_name>
+        <sys_updated_by>jnerius</sys_updated_by>
+        <sys_updated_on>2017-03-31 03:45:24</sys_updated_on>
+    </sysevent_script_action>
+</record_update>

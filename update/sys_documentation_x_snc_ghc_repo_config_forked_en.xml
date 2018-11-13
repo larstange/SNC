@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?><record_update>
+    <sys_documentation element="forked" label="Forked" language="en" table="x_snc_ghc_repo_config">
+        <sys_documentation action="INSERT_OR_UPDATE">
+            <element>forked</element>
+            <help/>
+            <hint/>
+            <label>Forked</label>
+            <language>en</language>
+            <name>x_snc_ghc_repo_config</name>
+            <plural>Forked</plural>
+            <sys_class_name>sys_documentation</sys_class_name>
+            <sys_created_by>admin</sys_created_by>
+            <sys_created_on>2017-03-17 02:06:41</sys_created_on>
+            <sys_id>8f29c3e5676132009ff4dbd457415ac2</sys_id>
+            <sys_mod_count>0</sys_mod_count>
+            <sys_name>Forked</sys_name>
+            <sys_package display_value="GitHub Companion" source="x_snc_ghc">b9d683a9136db6009718b9b76144b01d</sys_package>
+            <sys_policy/>
+            <sys_scope display_value="GitHub Companion">b9d683a9136db6009718b9b76144b01d</sys_scope>
+            <sys_update_name>sys_documentation_x_snc_ghc_repo_config_forked_en</sys_update_name>
+            <sys_updated_by>admin</sys_updated_by>
+            <sys_updated_on>2017-03-17 02:06:41</sys_updated_on>
+            <url/>
+            <url_target/>
+        </sys_documentation>
+    </sys_documentation>
+</record_update>

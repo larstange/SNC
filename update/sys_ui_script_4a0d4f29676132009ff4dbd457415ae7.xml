@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="UTF-8"?><record_update table="sys_ui_script">
+    <sys_ui_script action="INSERT_OR_UPDATE">
+        <active>true</active>
+        <description/>
+        <global>false</global>
+        <name>x_snc_ghc.login_app</name>
+        <script><![CDATA[angular.module('ghLogin', [])
+	.controller('GitHubLoginCtrl', function($scope, $http, $window) {   
+	
+	// Set default header X-UserToken
+	$http.defaults.headers.common['X-UserToken'] = $window.g_ck; 
+	
+	$scope.twoFactorRequired = false; 
+	$scope.username = ''; 
+	$scope.password = ''; 
+	$scope.code     = ''; 
+	$scope.message  = ''; 
+	$scope.error    = ''; 
+	
+	$scope.login = function() {
+		console.log('$scope.username: '        + $scope.username);
+		console.log('$scope.password.length: ' + $scope.password.length);
+		console.log('$scope.code: '            + $scope.code);
+
+		var data = {}; 
+		data.username = $scope.username; 
+		data.password = $scope.password; 
+
+		if ($scope.twoFactorRequired && $scope.code) {
+			data.code = $scope.code; 
+		}
+
+		$http.post('/api/x_snc_ghc/gh/gh_token', data).then(
+			function success(response) {
+				console.log(response); 
+				
+				var status    = response.data.result.httpStatus; 
+				var twoFactor = response.data.result.twoFactor; 
+
+				if (status == 401 && twoFactor) {
+					$scope.twoFactorRequired = true; 
+					$scope.message = "Please enter your two-factor authentication code."; 
+				} else if (status == 201) {
+					$window.close();
+				} else {
+					console.log('got the error...' + response.data.result.message); 
+					$scope.error = response.data.result.message; 
+				}
+			}, 
+			function failure(response) {
+				console.log(response.data); 
+			}
+		); 
+	};
+});
+
+]]></script>
+        <script_name>login_app</script_name>
+        <sys_class_name>sys_ui_script</sys_class_name>
+        <sys_created_by>jnerius</sys_created_by>
+        <sys_created_on>2017-03-17 02:23:41</sys_created_on>
+        <sys_id>4a0d4f29676132009ff4dbd457415ae7</sys_id>
+        <sys_mod_count>15</sys_mod_count>
+        <sys_name>x_snc_ghc.login_app</sys_name>
+        <sys_package display_value="GitHub Companion" source="x_snc_ghc">b9d683a9136db6009718b9b76144b01d</sys_package>
+        <sys_policy/>
+        <sys_scope display_value="GitHub Companion">b9d683a9136db6009718b9b76144b01d</sys_scope>
+        <sys_update_name>sys_ui_script_4a0d4f29676132009ff4dbd457415ae7</sys_update_name>
+        <sys_updated_by>jnerius</sys_updated_by>
+        <sys_updated_on>2017-04-12 05:03:20</sys_updated_on>
+        <ui_type/>
+        <use_scoped_format>false</use_scoped_format>
+    </sys_ui_script>
+</record_update>

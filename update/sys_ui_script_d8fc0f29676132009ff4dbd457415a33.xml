@@ -1,0 +1,295 @@
+<?xml version="1.0" encoding="UTF-8"?><record_update table="sys_ui_script">
+    <sys_ui_script action="INSERT_OR_UPDATE">
+        <active>true</active>
+        <description/>
+        <global>false</global>
+        <name>x_snc_ghc.ghc_app</name>
+        <script><![CDATA[angular.module('ghCompanion', [])
+	.controller('GitHubCompanionCtrl', function($scope, $http, $window, $interval) {   
+	
+	// Set default header X-UserToken
+	$http.defaults.headers.common['X-UserToken'] = $window.g_ck; 
+	
+	// Possibly the most important part of this app
+	$scope.octocats = [
+		'original.png',
+		'octobiwan.jpg',
+		'class-act.png',
+		'forktocat.jpg',
+		'repo.png',
+		'setuptocat.jpg', 
+		'socialite.jpg',
+		'inspectocat.jpg',
+		'riddlocat.png'
+	]; 
+
+	$scope.randomOcto = $scope.octocats[Math.floor(Math.random() * $scope.octocats.length)]; 
+
+	$scope.tokenChecked = false; 
+	$scope.hasToken     = false; 
+	$scope.token        = ''; 
+	$scope.user         = {}; 
+	$scope.repoConfigs  = []; 
+	$scope.transaction  = null; 
+	$scope.progressId   = ''; 
+	$scope.message      = ''; 
+	$scope.processing   = false; 
+
+	// This is a spaghetti mess and should be consolidated into services
+	
+	$scope.$watch('progressId', function() {
+		if ($scope.progressId != '') {
+			// $scope.message = 'Progress ID changed to ' + $scope.progressId; 
+			$scope.progressChecker = $interval($scope.getStatus, 300); 
+		}
+	});  
+	
+	$scope.getStatus = function() {
+		$http.get('/api/sn_devstudio/v1/vcs/transactions/' + $scope.progressId).then(
+			function success(response) {
+				$scope.transaction = response.data.result; 
+				if ($scope.transaction.state > "1") {
+					$interval.cancel($scope.progressChecker); 
+					$scope.processing = false; 
+					$scope.syncRepoConfigs();
+				}
+			},
+			function failure(response) {
+				
+			}
+		);
+	}; 
+	
+	$scope.checkForToken = function() {
+		$http.get('/api/x_snc_ghc/gh/token_exists').then(
+			function success(response) {
+				$scope.hasToken = response.data.result.token_exists; 
+				$scope.loadUserInfo(); 
+				$scope.loadRepoConfigs(); 
+				$scope.loadToken(); 
+			},
+			function failure(response) {
+				
+			}
+		);
+	}; 
+	
+	$scope.loadUserInfo = function() {
+		$http.get('/api/x_snc_ghc/gh/gh_user').then(
+			function success(response) {
+				// console.log(response); 
+				$scope.user = response.data.result; 
+			},
+			function failure(response) {
+				
+			}
+		); 
+	}; 
+	
+	$scope.loadToken = function() {
+		$http.get('/api/x_snc_ghc/gh/get_token').then(
+			function success(response) {
+				// console.log(response); 
+				$scope.token = response.data.result.token; 
+			},
+			function failure(response) {
+				
+			}
+		); 
+	}; 
+	
+	$scope.loadRepoConfigs = function() {
+		$http.get('/api/x_snc_ghc/gh/repo_config').then(
+			function success(response) {
+				$scope.repoConfigs = response.data.result;
+				console.log($scope.repoConfigs); 
+			},
+			function failure(response) {
+				
+			}
+		); 
+	}; 
+	
+	$scope.forkAndLink = function(repoConfig, index) {
+		$scope.clickedIndex = index; 
+		// console.log(repoConfig); 
+		$http.post('/api/x_snc_ghc/gh/fork_repo/' + repoConfig.sys_id).then(
+			function success(response) {
+				
+				$http.post('/api/sn_devstudio/v1/vcs/apps', {
+					url: response.data.result.clone_url, 
+					username: $scope.user.login, 
+					password: $scope.token, 
+					setTestConnection: false
+				}, {
+					params: { sysparm_transaction_scope: 'global' }
+				}).then(
+					function success(response) {
+						// console.log(response); 
+						$scope.progressId = response.data.result.progressId; 
+					}, 
+					function failure(response) {
+						
+					}
+				); 
+			},
+			function failure(response) {
+				
+			}
+		); 
+	}; 
+
+	$scope.syncRepoConfigs = function() {
+		$http.post('/api/x_snc_ghc/gh/repo_config_sync').then(
+			function success(response) {
+				console.log(response.data); 
+				$scope.loadRepoConfigs(); 
+			},
+			function failure(response) {
+				
+			}
+		); 
+	}; 
+	
+	$scope.initiateOAuth = function() {
+		var oauthRequestorContext = 'sys_user'; 
+		var oauthRequestorSysId   = g_user.userID; 
+		var oauthProfileId        = '84c4aa2a1345b6009718b9b76144b0cc'; 
+
+		var oauth_initiator_url = '/oauth_initiator.do' +
+				'?oauth_requestor_context=' + oauthRequestorContext +
+				'&oauth_requestor='         + oauthRequestorSysId +
+				'&oauth_provider_profile='  + oauthProfileId +
+				'&response_type=code';
+
+		$window.open(oauth_initiator_url, '', 'height=500,width=800');
+	}; 
+	
+	$scope.initiateLoginWindow = function() {
+		var localLoginUrl = '/x_snc_ghc_login.do'; 
+		var loginWindow = $window.open(localLoginUrl, '', 'height=460,width=400'); 
+		loginWindow.onunload = function() {
+			$window.location.reload(); 
+		}; 
+	}; 
+	
+	// Spaghetti ahead
+	$scope.tagClicked = function(tag, config, index) {
+		$scope.clickedIndex = index;
+
+		var proceed = confirm('Switch to ' + tag.name + '?'); 
+		
+		if (proceed) {
+			$scope.processing = true; 
+			console.log(JSON.stringify(tag, null, 4) + '\n\n' + 
+				  JSON.stringify(config, null, 4)); 
+
+			var branchName = 'checkpoint-' + tag.name; 
+			var endpoint = '/api/sn_devstudio/v1/vcs/apps/' + config.app + '/repos/' + config.repo + '/branches'
+			$http.get(endpoint, {
+				params: { sysparm_transaction_scope: config.app }
+			}).then(
+				function success(response) {
+					console.log(response)
+					var branches = response.data.result.branches; 
+					var branch; 
+					var existing = false; 
+
+					for (var i=0; i<branches.length; i++) {
+						branch = branches[i]; 
+						if (branch.name == branchName) {
+							existing = true; 
+							console.log('Branch ' + branchName + ' already exists. Switching to it now...'); 
+							$scope.switchToBranch(branchName, config); 
+							break; 
+						}
+					}
+					
+					if (!existing) {
+						console.log('Branch ' + branchName + ' does not exist. Creating it now...'); 
+						$scope.createBranchFromTag(tag, config); 
+					}
+				}, 
+				function failure(response) {
+
+				}
+			);
+		}
+	}; 
+
+	$scope.createBranchFromTag = function(tag, config) {
+		var newBranchName = "checkpoint-" + tag.name; 
+		var endpoint = '/api/sn_devstudio/v1/vcs/apps/' + config.app + '/repos/' + config.repo + '/branches'; 
+		$http.post(endpoint, {
+			branchName: newBranchName, 
+			preserveLocalChanges: true, 
+			tagName: tag.name
+		}, {
+			params: { sysparm_transaction_scope: config.app }
+		}).then(
+			function success(response) {
+				// console.log(response); 
+				$scope.progressId = response.data.result.progressId; 
+			}, 
+			function failure(response) {
+				
+			}
+		); 
+	}; 
+
+	$scope.switchToBranch = function(branchName, config) {
+		var endpoint = '/api/sn_devstudio/v1/vcs/apps/' + config.app + '/repos/' + config.repo + '/branches/' + branchName; 
+		$http.put(endpoint, {
+			appId: config.appId, 
+			branchName: branchName, 
+			preserveLocalChanges: true
+		}, {
+			params: { sysparm_transaction_scope: config.app }
+		}).then(
+			function success(response) {
+				$scope.progressId = response.data.result.progressId; 
+			}, 
+			function failure(response) {
+				
+			}
+		); 
+	}; 
+	
+	$scope.checkForToken(); 
+});
+/*
+
+
+$http.post('/api/sn_devstudio/v1/vcs/apps', {
+					url: response.data.result.clone_url, 
+					username: $scope.user.login, 
+					password: $scope.token, 
+					setTestConnection: false
+				}, {
+					params: { sysparm_transaction_scope: 'global' }
+				}).then(
+					function success(response) {
+						// console.log(response); 
+						$scope.progressId = response.data.result.progressId; 
+					}, 
+					function failure(response) {
+						
+					}
+*/]]></script>
+        <script_name>ghc_app</script_name>
+        <sys_class_name>sys_ui_script</sys_class_name>
+        <sys_created_by>jnerius</sys_created_by>
+        <sys_created_on>2017-03-17 02:23:21</sys_created_on>
+        <sys_id>d8fc0f29676132009ff4dbd457415a33</sys_id>
+        <sys_mod_count>35</sys_mod_count>
+        <sys_name>x_snc_ghc.ghc_app</sys_name>
+        <sys_package display_value="GitHub Companion" source="x_snc_ghc">b9d683a9136db6009718b9b76144b01d</sys_package>
+        <sys_policy/>
+        <sys_scope display_value="GitHub Companion">b9d683a9136db6009718b9b76144b01d</sys_scope>
+        <sys_update_name>sys_ui_script_d8fc0f29676132009ff4dbd457415a33</sys_update_name>
+        <sys_updated_by>jnerius</sys_updated_by>
+        <sys_updated_on>2017-04-12 03:01:56</sys_updated_on>
+        <ui_type/>
+        <use_scoped_format>false</use_scoped_format>
+    </sys_ui_script>
+</record_update>
